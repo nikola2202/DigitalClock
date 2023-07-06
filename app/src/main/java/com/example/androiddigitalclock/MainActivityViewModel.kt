@@ -9,6 +9,12 @@ import kotlinx.coroutines.launch
 
 class MainActivityViewModel: ViewModel() {
 
+    val hourRightDisplayManager = DigitDisplayManager()
+    val hourLeftDisplayManager = DigitDisplayManager()
+
+    val secondsRightDisplayManager = DigitDisplayManager()
+    val secondsLeftDisplayManager = DigitDisplayManager()
+
     //region LiveData
     private val _segmentTopLiveData = MutableLiveData(R.color.unselected)
     val segmentTopLiveData: LiveData<Int> = _segmentTopLiveData
@@ -33,43 +39,21 @@ class MainActivityViewModel: ViewModel() {
 
     //endregion LiveData
 
-    private val liveDataList = listOf(
-        _segmentTopLiveData,
-        _segmentTopLeftLiveData,
-        _segmentTopRightLiveData,
-        _segmentMiddleLiveData,
-        _segmentBottomLeftLiveData,
-        _segmentBottomRightLiveData,
-        _segmentBottomLiveData
-    )
-
-    private val digitMap = mapOf(
-        _segmentTopLiveData         to listOf(0,2,3,5,6,7,8,9),
-        _segmentTopLeftLiveData     to listOf(0,4,5,6,8,9),
-        _segmentTopRightLiveData    to listOf(0,1,2,3,4,7,8,9),
-        _segmentMiddleLiveData      to listOf(2,3,4,5,6,8,9),
-        _segmentBottomLeftLiveData  to listOf(0,2,6,8),
-        _segmentBottomRightLiveData to listOf(0,1,3,4,5,6,7,8,9),
-        _segmentBottomLiveData      to listOf(0,2,3,5,6,8)
-    )
-
     fun startCounting() {
         viewModelScope.launch {
-            repeat(10) {
-                onNewDigit(it)
-                delay(2_000)
-            }
-        }
-    }
+            var index = 0
+            while (true) {
+                val hours = index / 60
+                val seconds = index % 60
 
-    fun onNewDigit(digit: Int) {
-        liveDataList.forEach { segmentLiveData->
-            val colorRes = if (digitMap[segmentLiveData]!!.contains(digit)) {
-                R.color.selected
-            }else {
-                R.color.unselected
+                hourRightDisplayManager.onNewDigit(hours % 10)
+                hourLeftDisplayManager.onNewDigit(hours / 10)
+
+                secondsRightDisplayManager.onNewDigit(seconds % 10)
+                secondsLeftDisplayManager.onNewDigit(seconds / 10)
+                index++
+                delay(250)
             }
-            segmentLiveData.postValue(colorRes)
         }
     }
 }
